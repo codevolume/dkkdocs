@@ -3,7 +3,6 @@ import LoginPage from "./pages/LoginPage";
 import { useAuthStore } from "./store/authStore";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { useEffect } from "react";
-import HomePage from "./pages/HomePage";
 
 const RedirectAuthenticatedUser = ({ children }) => {
   const { isAuthenticated, user } = useAuthStore();
