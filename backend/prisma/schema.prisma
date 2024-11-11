@@ -1,0 +1,26 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGO_URI")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  email String @unique
+  password String
+  name String
+  avatar String?
+  lastlogin DateTime @default(now())
+  isVerified Boolean @default(false)
+
+  resetPasswordToken String?
+  resetPasswordExpiresAt DateTime?
+  verificationToken String?
+  verificationTokenExpiresAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
