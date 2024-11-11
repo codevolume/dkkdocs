@@ -4,7 +4,7 @@ import crypto from "crypto";
 import { prisma } from "../config/prismaclient.js";
 
 import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js";
-import { sendPasswordResetEmail, sendResetSuccessEmail, sendVerificationEmail } from "../mail/emails.js";
+import { sendPasswordResetEmail, sendResetSuccessEmail, sendVerificationEmail, sendWelcomeEmail } from "../mail/emails.js";
 
 export const signup = async (req, res) => {
     const { email, password, name } = req.body;
@@ -52,21 +52,29 @@ export const signup = async (req, res) => {
 export const verifyEmail = async (req, res) => {
     const { code } = req.body;
     try {
-        const user = await User.findOne({
-            verificationToken: code,
-            verificationTokenExpiresAt: { $gt: Date.now() },
+        const user = await prisma.user.findFirst({
+            where: {
+                verificationToken: code,
+                verificationTokenExpiresAt: { gt: new Date() },
+            },
         });
 
         if (!user) {
             return res.status(400).json({ success: false, message: "Invalid or expired verification code" });
         }
 
-        user.isVerified = true;
-        user.verificationToken = undefined;
-        user.verificationTokenExpiresAt = undefined;
-        await user.save();
+        await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                isVerified: true,
+                verificationToken: null,
+                verificationTokenExpiresAt: null,
+            },
+        });
 
         await sendWelcomeEmail(user.email, user.name);
+
+        res.status(200).json({ success: true, message: "Email verified successfully" });
     } catch (error) {
         res.status(400).json({ success: false, message: error.message });
     }
@@ -109,19 +117,18 @@ export const logout = async (req, res) => {
 export const forgotPassword = async (req, res) => {
     const { email } = req.body;
     try {
-        const user = await prisma.user.findUnique({ email });
+        const user = await prisma.user.findFirst({ where: { email } });
         if (!user) {
             return res.status(400).json({ success: false, message: "User not found" });
         }
 
         // Generate reset token
         const resetToken = crypto.randomBytes(20).toString("hex");
-        const resetTokenExpriesAt = Date.now() + 1 * 60 * 60 * 1000; // 1 hours
 
         // update Token
         await prisma.user.update({
-            where: { id: user._id },
-            data: { resetPasswordToken: resetToken, resetPasswordExpiresAt: resetTokenExpriesAt },
+            where: { id: user.id },
+            data: { resetPasswordToken: resetToken, resetPasswordExpiresAt: new Date(Date.now() + 1 * 60 * 60 * 1000) },
         });
 
         // Send reset password email
@@ -138,9 +145,11 @@ export const resetPassword = async (req, res) => {
         const { token } = req.params;
         const { password } = req.body;
 
-        const user = await prisma.user.findUnique({
-            resetPasswordToken: token,
-            resetPasswordExpiresAt: { $gt: Date.now() },
+        const user = await prisma.user.findFirst({
+            where: {
+                resetPasswordToken: token,
+                resetPasswordExpiresAt: { gt: new Date() },
+            },
         });
 
         if (!user) {
@@ -151,8 +160,8 @@ export const resetPassword = async (req, res) => {
         const hashedPassword = await bcryptjs.hash(password, 10);
 
         await prisma.user.update({
-            where: { id: user._id },
-            data: { password: hashedPassword, resetPasswordToken: undefined, resetPasswordExpiresAt: undefined },
+            where: { id: user.id },
+            data: { password: hashedPassword, resetPasswordToken: null, resetPasswordExpiresAt: null },
         });
 
         await sendResetSuccessEmail(user.email);
@@ -166,7 +175,7 @@ export const resetPassword = async (req, res) => {
 
 export const chechkAuth = async (req, res) => {
     try {
-        const user = await prisma.user.findUnique({ where: { id: req.userId}});
+        const user = await prisma.user.findUnique({ where: { id: req.userId } });
         if (!user) {
             return res.status(400).json({ success: false, message: "User not found" });
         }

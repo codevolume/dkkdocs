@@ -56,3 +56,22 @@ export const sendResetSuccessEmail = async (email) => {
         throw new Error(`Error sending password reset email: ${error}`);
     }
 }
+
+export const sendWelcomeEmail = async (email, name) => {
+    const recipient = [{ email }];
+
+    try {
+        const response = await mailTrapClient.send({
+            from: sender,
+            to: recipient,
+            subject: "Email verify was Successful",
+            html: `<h1>Verifying was succesfully, ${name}</h1>`,
+            category: "Password reset", 
+        })
+
+        console.log("Password reset email sent succesfully", response);
+    } catch (error) {
+        console.log(`Error sending password reset ${error}`);
+        throw new Error(`Error sending password reset email: ${error}`);
+    }
+}

@@ -1,48 +1,21 @@
 import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
-import { useAuthStore } from "./store/authStore";
-import { Navigate, Route, Routes } from "react-router-dom";
-import { useEffect } from "react";
+import HomePage from "./pages/HomePage";
+import { Route, Routes } from "react-router-dom";
 
-const RedirectAuthenticatedUser = ({ children }) => {
-  const { isAuthenticated, user } = useAuthStore();
-
-  if (isAuthenticated && user.isVerified) {
-    return <Navigate to="/" replace />;
-  }
-
-  return children;
-};
 function App() {
-  const { isCheckingAuth, checkAuth } = useAuthStore();
+    return (
+        <div className="h-screen bg-gray-200">
+            <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/signup" element={<SignUpPage />} />
+                <Route path="/login" element={<LoginPage />} />
 
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
-
-  return (
-    <div className="bg-gray-200">
-      <Routes>
-        <Route path="/" element={"Home"} />
-        <Route
-          path="/signup"
-          element={
-            <RedirectAuthenticatedUser>
-              <SignUpPage />
-            </RedirectAuthenticatedUser>
-          }
-        />
-        <Route
-          path="/login"
-          element={
-            <RedirectAuthenticatedUser>
-              <LoginPage />
-            </RedirectAuthenticatedUser>
-          }
-        />
-      </Routes>
-    </div>
-  );
+                {/* 404 Page */}
+                <Route path="*" element="404" />
+            </Routes>
+        </div>
+    );
 }
 
 export default App;

@@ -9,7 +9,7 @@ const LoginPage = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
-    const {login, isLoading, error, message} = useAuthStore();
+    const {login, error, message} = useAuthStore();
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -57,7 +57,7 @@ const LoginPage = () => {
                             </div>
                         </div>
 
-                        <motion.button className="mt-5 w-full py-3 px-4 bg-primary text-white font-bold rounded-md shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 transition duration-200" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} type="submit">
+                        <motion.button className="mt-5 w-full py-3 px-4 bg-primary text-white font-bold rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 transition duration-200" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} type="submit">
                             Login
                         </motion.button>
                     </form>
